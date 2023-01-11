@@ -1,13 +1,12 @@
-Attribute VB_Name = "Module1"
 
 Sub tickerInfo():
 Application.ScreenUpdating = False
 
 'Walk through each worksheet
-Dim ws As Worksheet
+'Dim ws As Worksheet
 
-For Each ws In ThisWorkbook.Worksheets
-    ws.Activate
+'For Each ws In ThisWorkbook.Worksheets
+'    ws.Activate
 
 
 'Headers
@@ -30,134 +29,113 @@ Range("N4").Value = "Greatest Total Volume"
 '<This is required for the for loops as it is not efficient to change the range everytime there are different dataset rows>
 
 Dim rowCount As Long
+Dim tickerRow As Long
+Dim tickerCount As Long
+Dim rows As Long
+Dim percentChange As Double
+
+tickerRow = 2
+rows = 2
 
 rowCount = Range("A1").End(xlDown).Row
 
-'Find the Ticker Names
+'Part 1
 '----------------------------------------------------
-'Create an arraylist object to store the different ticker symbols
-'Source: https://analystcave.com/vba-arraylist-using-vba-arraylist-excel/)
+For i = 2 To rowCount + 1
 
-Dim tickerCount As Integer
-
-Set tickerArray = CreateObject("System.Collections.ArrayList")
-
-    For i = 2 To rowCount + 1
-    
-        If Cells(i, 1).Value <> Cells(i + 1, 1).Value Then
+    If Cells(i, 1).Value <> Cells(i + 1, 1).Value Then
         
-            tickerArray.Add Cells(i, 1).Value
+        'Determine the Ticker Names
+        Cells(tickerRow, 9).Value = Cells(i, 1).Value
 
+        'Calculate Yearly Change
+        Cells(tickerRow, 10).Value = Cells(i, 6).Value - Cells(rows, 3).Value
+        
+
+        'Calculate percent change
+        If Cells(rows, 3).Value <> 0 Then
+            percentChange = ((Cells(i, 6).Value - Cells(rows, 3).Value) / Cells(rows, 3).Value)
+                    
+        'Percent formating
+            Cells(tickerRow, 11).Value = FormatPercent(percentChange)
+                    
+        Else
+                    
+            Cells(tickerRow, 11).Value = FormatPercent(0)
+                    
         End If
-    Next i
 
-tickerCount = tickerArray.Count
-
-
-'Inputting the data in the worksheet
-'----------------------------------------------------
-
-'Ticker Symbol
-'-------------
-    For i = 2 To tickerCount + 1
-        Cells(i, 9).Value = tickerArray(i - 2) 'minus 2 since array starts from 0
-    Next i
-
-
-'Yearly Change
-'--------------
-'Create an array object to store the open and closed prices for each tickers
-
-Set openPrice = CreateObject("System.Collections.ArrayList")
-
-     For i = 2 To rowCount + 1
-        For J = 2 To tickerCount + 1
+        'Increase tickerRow count
+        tickerRow = tickerRow + 1
         
-            If Cells(i, 2).Value = "20200102" And Cells(i, 1).Value = tickerArray(J - 2) Then
-                openPrice.Add Cells(i, 3).Value
-    
-            End If
-        Next J
-    Next i
-
-Set closePrice = CreateObject("System.Collections.ArrayList")
-
-     For i = 2 To rowCount + 1
-        For J = 2 To tickerCount + 1
+        'Increase rows count
+        rows = i + 1
         
-            If Cells(i, 2).Value = "20201231" And Cells(i, 1).Value = tickerArray(J - 2) Then
-                closePrice.Add Cells(i, 6).Value
-    
-            End If
-        Next J
-     Next i
-
-
-For i = 2 To (openPrice.Count + 1)
-    Cells(i, 10).Value = (closePrice(i - 2) - openPrice(i - 2))
+    End If
+        
 Next i
-
-
-'Percentage Change
-For i = 2 To (openPrice.Count + 1)
-    Cells(i, 11).Value = FormatPercent((closePrice(i - 2) - openPrice(i - 2)) / openPrice(i - 2))
-Next i
-
 
 'Total Volume (add the values in column g if column A is equal to ticker symbol)
+'----------------------------------------------------
+tickerCount = Range("I1").End(xlDown).Row
+
     For i = 2 To tickerCount + 1
-        Cells(i, 12).Value = Application.WorksheetFunction.SumIf(Range("A:A"), tickerArray(i - 2), Range("G:G"))
+        Cells(i, 12).Value = Application.WorksheetFunction.SumIf(Range("A:A"), Cells(i, 9).Value, Range("G:G"))
     Next i
 
 'Greatest % Increase
+'----------------------------------------------------
 Dim percentIncrease As Double
 
 percentIncrease = 0
 
     For i = 2 To tickerCount + 1
-    
+
         If percentIncrease < Cells(i, 11).Value Then
-        
+
             percentIncrease = Cells(i, 11).Value
             Range("O2").Value = Cells(i, 9).Value
             Range("P2").Value = FormatPercent(percentIncrease)
-        
+
         End If
     Next i
-    
-'Greatest & Decrease
+
+'Greatest % Decrease
+'----------------------------------------------------
 Dim percentDecrease As Double
 
 percentDecrease = 0
 
     For i = 2 To tickerCount + 1
-    
+
         If percentDecrease > Cells(i, 11).Value Then
-            
+
             percentDecrease = Cells(i, 11).Value
             Range("O3").Value = Cells(i, 9).Value
             Range("P3").Value = FormatPercent(percentDecrease)
-        
+
         End If
     Next i
 
 'Greatest Total Volume
+'----------------------------------------------------
 Dim totalVolume As Double
 
 totalVolume = 0
 
     For i = 2 To tickerCount + 1
-    
+
         If totalVolume < Cells(i, 12).Value Then
-        
+
             totalVolume = Cells(i, 12).Value
             Range("O4").Value = Cells(i, 9).Value
             Range("P4").Value = totalVolume
-        
+
         End If
     Next i
 
 'Apply Conditional Formatting to column J
+'----------------------------------------------------
 For i = 2 To tickerCount + 1
     If Cells(i, 10).Value >= 0 Then
         Cells(i, 10).Interior.Color = RGB(124, 252, 0)
@@ -167,6 +145,7 @@ For i = 2 To tickerCount + 1
 Next i
 
 'Apply Conditional Formatting to column K
+'----------------------------------------------------
 For i = 2 To tickerCount + 1
     If Cells(i, 11).Value >= 0 Then
         Cells(i, 11).Interior.Color = RGB(124, 252, 0)
@@ -174,8 +153,8 @@ For i = 2 To tickerCount + 1
         Cells(i, 11).Interior.Color = RGB(255, 0, 0)
     End If
 Next i
-    
-Next ws
+
+'Next ws
 Application.ScreenUpdating = True
 
 End Sub
