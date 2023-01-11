@@ -3,10 +3,10 @@ Sub tickerInfo():
 Application.ScreenUpdating = False
 
 'Walk through each worksheet
-'Dim ws As Worksheet
+Dim ws As Worksheet
 
-'For Each ws In ThisWorkbook.Worksheets
-'    ws.Activate
+For Each ws In ThisWorkbook.Worksheets
+    ws.Activate
 
 
 'Headers
@@ -154,7 +154,7 @@ For i = 2 To tickerCount + 1
     End If
 Next i
 
-'Next ws
+Next ws
 Application.ScreenUpdating = True
 
 End Sub
