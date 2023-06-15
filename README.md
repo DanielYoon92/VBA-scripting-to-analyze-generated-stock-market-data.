@@ -2,7 +2,7 @@
 
 Please refer to 'Module_2_Challenge.bas' to view the VBA script
 
-**Background**
+**_Background_**
 
 I have used VBA scripting to analyze generated stock market data.
 
